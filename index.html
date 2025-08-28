@@ -20,6 +20,28 @@
         .tab-button { background-color: white; color: #374151; }
         .tab-button:hover { background-color: #f3f4f6; }
         .tab-button.active { color: white; }
+        
+        /* Estilos para as sub-abas de histórico */
+        .history-sub-tab-content { display: none; }
+        .history-sub-tab-content.active { display: block; }
+        .history-sub-tab-button { background-color: #f9fafb; color: #4b5563; }
+        .history-sub-tab-button.active { background-color: #4f46e5; color: white; }
+
+        /* Estilos para a Linha do Tempo */
+        .timeline { border-left: 3px solid #e5e7eb; }
+        .timeline-item { position: relative; }
+        .timeline-item:before {
+            content: '';
+            position: absolute;
+            left: -9px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background-color: white;
+            border: 3px solid;
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
@@ -41,6 +63,7 @@
             <button data-tab="atividade-fisica" class="tab-button py-2 px-4 rounded-lg font-semibold transition-colors duration-200">Atividade Física</button>
             <button data-tab="alimentacao" class="tab-button py-2 px-4 rounded-lg font-semibold transition-colors duration-200">Alimentação</button>
             <button data-tab="saude" class="tab-button py-2 px-4 rounded-lg font-semibold transition-colors duration-200">Saúde</button>
+            <button data-tab="historico" class="tab-button py-2 px-4 rounded-lg font-semibold transition-colors duration-200">Histórico</button>
         </div>
 
         <!-- Conteúdo das Abas -->
@@ -49,8 +72,6 @@
             <div id="geral" class="tab-content bg-white p-6 rounded-2xl shadow-md border border-gray-200">
                 <h2 class="text-2xl font-semibold text-gray-700 mb-4">✨ Timeline do Dia</h2>
                 <ul id="geral-list" class="space-y-3 mb-4"></ul>
-
-                <!-- Seção do Relatório -->
                 <div class="mt-8 pt-6 border-t-2 border-gray-100">
                     <h2 class="text-2xl font-semibold text-gray-700 mb-4">📈 Relatório de Progresso</h2>
                     <div id="report-summary" class="text-center p-4 rounded-lg bg-gray-50 mb-6"></div>
@@ -67,6 +88,23 @@
             <div id="atividade-fisica" class="tab-content bg-white p-6 rounded-2xl shadow-md border border-gray-200"></div>
             <div id="alimentacao" class="tab-content bg-white p-6 rounded-2xl shadow-md border border-gray-200"></div>
             <div id="saude" class="tab-content bg-white p-6 rounded-2xl shadow-md border border-gray-200"></div>
+            
+            <!-- Conteúdo da aba de Histórico -->
+            <div id="historico" class="tab-content bg-white p-6 rounded-2xl shadow-md border border-gray-200">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-semibold text-gray-700">📜 Histórico de Tarefas</h2>
+                    <!-- Navegação das sub-abas -->
+                    <div id="history-sub-tabs" class="flex gap-2 p-1 bg-gray-100 rounded-lg">
+                        <button data-subtab="lista" class="history-sub-tab-button py-1 px-3 rounded-md text-sm font-semibold transition-colors">Lista</button>
+                        <button data-subtab="timeline" class="history-sub-tab-button py-1 px-3 rounded-md text-sm font-semibold transition-colors">Linha do Tempo</button>
+                    </div>
+                </div>
+                <!-- Container para o conteúdo das sub-abas -->
+                <div id="history-sub-tab-contents">
+                    <div id="history-lista" class="history-sub-tab-content space-y-6"></div>
+                    <div id="history-timeline" class="history-sub-tab-content space-y-6"></div>
+                </div>
+            </div>
         </main>
     </div>
 
@@ -76,18 +114,18 @@
         const tabContentsContainer = document.getElementById('tab-contents');
         const dateDisplay = document.getElementById('current-date');
         let tasks = {};
+        let history = {};
 
-        // --- DEFINIÇÃO DE CORES E ÍCONES ---
         const categoryConfig = {
-            geral:           { prefix: 'text-gray-500',   activeTab: 'bg-gray-600',   checkbox: 'text-gray-600',   ring: 'ring-gray-500',   icon: '✨', title: 'Visão Geral' },
-            trabalho:        { prefix: 'text-blue-500',   activeTab: 'bg-blue-600',   checkbox: 'text-blue-600',   ring: 'ring-blue-500',   icon: '💼', title: 'Trabalho' },
-            estudo:          { prefix: 'text-yellow-500', activeTab: 'bg-yellow-500', checkbox: 'text-yellow-500', ring: 'ring-yellow-500', icon: '📚', title: 'Estudo' },
-            'atividade-fisica': { prefix: 'text-red-500',    activeTab: 'bg-red-600',    checkbox: 'text-red-600',    ring: 'ring-red-500',    icon: '💪', title: 'Atividade Física' },
-            alimentacao:     { prefix: 'text-green-500',  activeTab: 'bg-green-600',  checkbox: 'text-green-600',  ring: 'ring-green-500',  icon: '🍎', title: 'Alimentação' },
-            saude:           { prefix: 'text-purple-500', activeTab: 'bg-purple-600', checkbox: 'text-purple-600', ring: 'ring-purple-500', icon: '❤️', title: 'Saúde' },
+            geral:            { prefix: 'text-gray-500',   activeTab: 'bg-gray-600',   checkbox: 'text-gray-600',   ring: 'ring-gray-500',   icon: '✨', title: 'Visão Geral', timeline: 'border-gray-500' },
+            trabalho:         { prefix: 'text-blue-500',   activeTab: 'bg-blue-600',   checkbox: 'text-blue-600',   ring: 'ring-blue-500',   icon: '💼', title: 'Trabalho', timeline: 'border-blue-500' },
+            estudo:           { prefix: 'text-yellow-500', activeTab: 'bg-yellow-500', checkbox: 'text-yellow-500', ring: 'ring-yellow-500', icon: '📚', title: 'Estudo', timeline: 'border-yellow-500' },
+            'atividade-fisica': { prefix: 'text-red-500',    activeTab: 'bg-red-600',    checkbox: 'text-red-600',    ring: 'ring-red-500',    icon: '💪', title: 'Atividade Física', timeline: 'border-red-500' },
+            alimentacao:      { prefix: 'text-green-500',  activeTab: 'bg-green-600',  checkbox: 'text-green-600',  ring: 'ring-green-500',  icon: '🍎', title: 'Alimentação', timeline: 'border-green-500' },
+            saude:            { prefix: 'text-purple-500', activeTab: 'bg-purple-600', checkbox: 'text-purple-600', ring: 'ring-purple-500', icon: '❤️', title: 'Saúde', timeline: 'border-purple-500' },
+            historico:        { prefix: 'text-indigo-500', activeTab: 'bg-indigo-600', checkbox: 'text-indigo-600', ring: 'ring-indigo-500', icon: '📜', title: 'Histórico', timeline: 'border-indigo-500' }
         };
 
-        // --- LÓGICA DE DADOS E TAREFAS ---
         function generateInitialTasks() {
             const today = new Date();
             const dayOfWeek = today.getDay();
@@ -128,19 +166,23 @@
             return newTasks;
         }
 
+        function getTodayKey() { return new Date().toLocaleDateString('pt-BR'); }
         function loadTasks() {
-            const todayKey = `dailyTasks-${new Date().toLocaleDateString('pt-BR')}`;
-            const savedTasks = localStorage.getItem(todayKey);
+            const todayStorageKey = `dailyTasks-${getTodayKey()}`;
+            const savedTasks = localStorage.getItem(todayStorageKey);
             tasks = savedTasks ? JSON.parse(savedTasks) : generateInitialTasks();
             saveTasks();
         }
-
         function saveTasks() {
-            const todayKey = `dailyTasks-${new Date().toLocaleDateString('pt-BR')}`;
-            localStorage.setItem(todayKey, JSON.stringify(tasks));
+            const todayStorageKey = `dailyTasks-${getTodayKey()}`;
+            localStorage.setItem(todayStorageKey, JSON.stringify(tasks));
         }
+        function loadHistory() {
+            const savedHistory = localStorage.getItem('tasksHistory');
+            history = savedHistory ? JSON.parse(savedHistory) : {};
+        }
+        function saveHistory() { localStorage.setItem('tasksHistory', JSON.stringify(history)); }
 
-        // --- FUNÇÕES DE MANIPULAÇÃO DO DOM ---
         function displayDate() {
             const now = new Date();
             const days = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
@@ -151,29 +193,26 @@
             const li = document.createElement('li');
             li.className = 'flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition-colors duration-150';
             if (task.completed) li.classList.add('completed');
-
             const taskCategory = task.category || categoryForElement;
             const colors = categoryConfig[taskCategory];
-            
             const isGeneralView = categoryForElement === 'geral';
             const prefix = isGeneralView ? `<span class="text-xs font-bold uppercase ${colors.prefix} mr-2">${taskCategory.replace('-', ' ')}:</span>` : '';
-
             li.innerHTML = `
                 <div class="flex items-center flex-grow min-w-0">
                     <span class="font-semibold text-gray-500 w-14 text-left">${task.time || ''}</span>
-                    <input type="checkbox" data-id="${task.id}" class="h-5 w-5 rounded border-gray-300 ${colors.checkbox} focus:${colors.ring} flex-shrink-0 mx-3" ${task.completed ? 'checked' : ''}>
+                    <input type="checkbox" data-id="${task.id}" data-category="${taskCategory}" class="h-5 w-5 rounded border-gray-300 ${colors.checkbox} focus:${colors.ring} flex-shrink-0 mx-3" ${task.completed ? 'checked' : ''}>
                     <span class="task-text text-lg text-gray-700 truncate">${prefix}${task.text}</span>
                 </div>
                 <button class="remove-task-btn text-gray-400 hover:text-red-500 transition-colors ml-2" data-id="${task.id}" data-category="${taskCategory}">
                     <i data-feather="trash-2" class="w-5 h-5"></i>
-                </button>
-            `;
+                </button>`;
             return li;
         }
 
         function renderCategoryTab(category) {
             const config = categoryConfig[category];
             const container = document.getElementById(category);
+            if(category === 'historico') return;
             container.innerHTML = `
                 <h2 class="text-2xl font-semibold text-gray-700 mb-4">${config.icon} ${config.title}</h2>
                 <ul id="${category}-list" class="space-y-3 mb-4"></ul>
@@ -181,89 +220,116 @@
                     <input type="text" placeholder="Nova tarefa..." class="flex-grow p-2 border rounded-lg focus:ring-2 focus:${config.ring} focus:outline-none">
                     <input type="time" class="p-2 border rounded-lg focus:ring-2 focus:${config.ring} focus:outline-none">
                     <button type="submit" class="${config.activeTab} text-white px-4 py-2 rounded-lg font-semibold hover:opacity-90 transition-opacity">Adicionar</button>
-                </form>
-            `;
+                </form>`;
         }
         
         function renderReport() {
             const reportSummaryEl = document.getElementById('report-summary');
             const reportDetailsEl = document.getElementById('report-details');
             const pendingTasksListEl = document.getElementById('pending-tasks-list');
-            
             reportDetailsEl.innerHTML = '';
             pendingTasksListEl.innerHTML = '';
-
-            let totalTasks = 0;
-            let totalCompleted = 0;
+            let totalTasks = 0, totalCompleted = 0;
             const allPendingTasks = [];
-            const now = new Date();
-            const currentHours = now.getHours();
-            const currentMinutes = now.getMinutes();
+            const now = new Date(), currentHours = now.getHours(), currentMinutes = now.getMinutes();
 
             Object.keys(tasks).forEach(category => {
                 const categoryTasks = tasks[category];
                 if (categoryTasks.length === 0) return;
-
                 const config = categoryConfig[category];
                 const categoryCompleted = categoryTasks.filter(t => t.completed).length;
                 const categoryTotal = categoryTasks.length;
                 const percentage = categoryTotal > 0 ? (categoryCompleted / categoryTotal) * 100 : 0;
-
                 totalTasks += categoryTotal;
                 totalCompleted += categoryCompleted;
-
-                categoryTasks.forEach(task => {
-                    if (!task.completed) {
-                        allPendingTasks.push({ ...task, category });
-                    }
-                });
-
+                categoryTasks.forEach(task => { if (!task.completed) allPendingTasks.push({ ...task, category }); });
                 const detailDiv = document.createElement('div');
                 detailDiv.innerHTML = `
                     <div class="flex justify-between items-center mb-1">
                         <span class="font-semibold ${config.prefix}">${config.icon} ${config.title}</span>
                         <span class="text-sm font-medium text-gray-500">${categoryCompleted} / ${categoryTotal}</span>
                     </div>
-                    <div class="w-full bg-gray-200 rounded-full h-4">
-                        <div class="${config.activeTab} h-4 rounded-full transition-all duration-500" style="width: ${percentage}%"></div>
-                    </div>
-                `;
+                    <div class="w-full bg-gray-200 rounded-full h-4"><div class="${config.activeTab} h-4 rounded-full transition-all duration-500" style="width: ${percentage}%"></div></div>`;
                 reportDetailsEl.appendChild(detailDiv);
             });
             
-            // Ordena a lista de tarefas pendentes por horário
             allPendingTasks.sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'));
-
-            // Renderiza a lista de tarefas pendentes já ordenada
             allPendingTasks.forEach(task => {
                 const config = categoryConfig[task.category];
                 let status = { text: 'Pendente', color: 'text-gray-500' };
                 if (task.time) {
                     const [taskHours, taskMinutes] = task.time.split(':').map(Number);
-                    if (taskHours < currentHours || (taskHours === currentHours && taskMinutes < currentMinutes)) {
-                        status = { text: 'Atrasado', color: 'text-red-500' };
-                    }
+                    if (taskHours < currentHours || (taskHours === currentHours && taskMinutes < currentMinutes)) status = { text: 'Atrasado', color: 'text-red-500' };
                 }
                 const li = document.createElement('li');
                 li.className = 'flex justify-between items-center';
-                li.innerHTML = `
-                    <span class="text-gray-600">${task.time ? `[${task.time}]` : ''} ${task.text} (${config.title})</span>
-                    <span class="font-semibold text-sm ${status.color}">${status.text}</span>
-                `;
+                li.innerHTML = `<span class="text-gray-600">${task.time ? `[${task.time}]` : ''} ${task.text} (${config.title})</span><span class="font-semibold text-sm ${status.color}">${status.text}</span>`;
                 pendingTasksListEl.appendChild(li);
             });
 
-
             const overallPercentage = totalTasks > 0 ? Math.round((totalCompleted / totalTasks) * 100) : 0;
-            reportSummaryEl.innerHTML = `
-                <p class="text-lg text-gray-600">Progresso Geral</p>
-                <p class="text-4xl font-bold text-gray-800">${overallPercentage}%</p>
-                <p class="text-md text-gray-500">${totalCompleted} de ${totalTasks} tarefas concluídas</p>
-            `;
+            reportSummaryEl.innerHTML = `<p class="text-lg text-gray-600">Progresso Geral</p><p class="text-4xl font-bold text-gray-800">${overallPercentage}%</p><p class="text-md text-gray-500">${totalCompleted} de ${totalTasks} tarefas concluídas</p>`;
+            if (pendingTasksListEl.children.length === 0 && totalTasks > 0) pendingTasksListEl.innerHTML = '<li class="text-center text-gray-500">Parabéns! Todas as tarefas foram concluídas.</li>';
+            else if (totalTasks === 0) pendingTasksListEl.innerHTML = '<li class="text-center text-gray-500">Nenhuma tarefa para hoje.</li>';
+        }
 
-            if (pendingTasksListEl.children.length === 0) {
-                 pendingTasksListEl.innerHTML = '<li class="text-center text-gray-500">Parabéns! Todas as tarefas foram concluídas.</li>';
+        function renderHistory() {
+            const historyListEl = document.getElementById('history-lista');
+            const historyTimelineEl = document.getElementById('history-timeline');
+            historyListEl.innerHTML = '';
+            historyTimelineEl.innerHTML = '';
+
+            const sortedDates = Object.keys(history).sort((a, b) => {
+                const [dayA, monthA, yearA] = a.split('/');
+                const [dayB, monthB, yearB] = b.split('/');
+                return new Date(`${yearB}-${monthB}-${dayB}`) - new Date(`${yearA}-${monthA}-${dayA}`);
+            });
+
+            if (sortedDates.length === 0) {
+                const emptyMsg = '<p class="text-center text-gray-500">Nenhuma tarefa foi concluída ainda.</p>';
+                historyListEl.innerHTML = emptyMsg;
+                historyTimelineEl.innerHTML = emptyMsg;
+                return;
             }
+
+            sortedDates.forEach(date => {
+                const tasksForDay = history[date];
+                if (tasksForDay.length === 0) return;
+                tasksForDay.sort((a, b) => (a.completedAt || '99:99').localeCompare(b.completedAt || '99:99'));
+
+                // Renderiza a visualização em Lista
+                const listDayContainer = document.createElement('div');
+                listDayContainer.innerHTML = `<h3 class="text-xl font-bold text-gray-800 pb-2 mb-2 border-b">${date}</h3>`;
+                const listElement = document.createElement('ul');
+                listElement.className = 'space-y-2';
+                tasksForDay.forEach(task => {
+                    const config = categoryConfig[task.category];
+                    listElement.innerHTML += `<li class="flex items-center text-gray-600"><span class="font-semibold w-20">[${task.completedAt}]</span><span class="font-bold ${config.prefix} mr-2">${config.icon}</span><span>${task.text}</span></li>`;
+                });
+                listDayContainer.appendChild(listElement);
+                historyListEl.appendChild(listDayContainer);
+
+                // Renderiza a visualização em Linha do Tempo
+                const timelineDayContainer = document.createElement('div');
+                timelineDayContainer.innerHTML = `<h3 class="text-xl font-bold text-gray-800 pb-2 mb-4">${date}</h3>`;
+                const timelineElement = document.createElement('div');
+                timelineElement.className = 'timeline ml-4 pl-8 space-y-4';
+                tasksForDay.forEach(task => {
+                    const config = categoryConfig[task.category];
+                    timelineElement.innerHTML += `
+                        <div class="timeline-item ${config.timeline}">
+                            <div class="flex items-center gap-4">
+                                <span class="font-bold text-gray-700">${task.completedAt}</span>
+                                <div class="flex items-center gap-2 p-2 bg-gray-50 rounded-lg flex-grow">
+                                    <span class="font-bold ${config.prefix}">${config.icon}</span>
+                                    <span class="text-gray-800">${task.text}</span>
+                                </div>
+                            </div>
+                        </div>`;
+                });
+                timelineDayContainer.appendChild(timelineElement);
+                historyTimelineEl.appendChild(timelineDayContainer);
+            });
         }
 
         function renderAll() {
@@ -271,19 +337,17 @@
             geralList.innerHTML = '';
             const allTasksFlat = Object.keys(tasks).flatMap(category => tasks[category].map(task => ({ ...task, category })));
             allTasksFlat.sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'));
-            allTasksFlat.forEach(task => {
-                geralList.appendChild(createTaskElement(task, 'geral'));
-            });
+            allTasksFlat.forEach(task => geralList.appendChild(createTaskElement(task, 'geral')));
+            
             Object.keys(tasks).forEach(category => {
                 const listElement = document.getElementById(`${category}-list`);
                 if(listElement) {
                     listElement.innerHTML = '';
-                    tasks[category]
-                        .sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'))
-                        .forEach(task => listElement.appendChild(createTaskElement(task, category)));
+                    tasks[category].sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99')).forEach(task => listElement.appendChild(createTaskElement(task, category)));
                 }
             });
             renderReport();
+            renderHistory();
             feather.replace();
         }
 
@@ -301,6 +365,16 @@
             }
         });
 
+        document.getElementById('history-sub-tabs').addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') {
+                const targetSubTab = e.target.dataset.subtab;
+                document.querySelectorAll('.history-sub-tab-button').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                document.querySelectorAll('.history-sub-tab-content').forEach(content => content.classList.remove('active'));
+                document.getElementById(`history-${targetSubTab}`).classList.add('active');
+            }
+        });
+
         tabContentsContainer.addEventListener('submit', (e) => {
             if (e.target.classList.contains('add-task-form')) {
                 e.preventDefault();
@@ -312,8 +386,7 @@
                 const category = form.closest('.tab-content').id;
                 if (taskText) {
                     tasks[category].push({ id: Date.now(), text: taskText, time: taskTime, completed: false });
-                    textInput.value = '';
-                    timeInput.value = '';
+                    textInput.value = ''; timeInput.value = '';
                     saveTasks();
                     renderAll();
                 }
@@ -323,32 +396,53 @@
         tabContentsContainer.addEventListener('click', (e) => {
             const checkbox = e.target.closest('input[type="checkbox"]');
             const removeBtn = e.target.closest('.remove-task-btn');
+            
             if (checkbox) {
                 const taskId = Number(checkbox.dataset.id);
-                Object.values(tasks).flat().forEach(task => {
-                    if (task.id === taskId) task.completed = checkbox.checked;
-                });
-                saveTasks();
-                renderAll();
+                const category = checkbox.dataset.category;
+                const task = tasks[category].find(t => t.id === taskId);
+                if (task) {
+                    task.completed = checkbox.checked;
+                    const todayKey = getTodayKey();
+                    if (!history[todayKey]) history[todayKey] = [];
+                    if (task.completed) {
+                        const alreadyInHistory = history[todayKey].some(ht => ht.id === taskId);
+                        if (!alreadyInHistory) {
+                            // CORREÇÃO: Formata a hora manualmente para HH:MM
+                            const now = new Date();
+                            const hours = String(now.getHours()).padStart(2, '0');
+                            const minutes = String(now.getMinutes()).padStart(2, '0');
+                            history[todayKey].push({ ...task, category: category, completedAt: `${hours}:${minutes}` });
+                        }
+                    } else {
+                        history[todayKey] = history[todayKey].filter(ht => ht.id !== taskId);
+                    }
+                    saveTasks();
+                    saveHistory();
+                    renderAll();
+                }
             }
+
             if (removeBtn) {
                 const taskId = Number(removeBtn.dataset.id);
                 const category = removeBtn.dataset.category;
                 tasks[category] = tasks[category].filter(task => task.id !== taskId);
+                const todayKey = getTodayKey();
+                if (history[todayKey]) history[todayKey] = history[todayKey].filter(ht => ht.id !== taskId);
                 saveTasks();
+                saveHistory();
                 renderAll();
             }
         });
 
-        // --- INICIALIZAÇÃO ---
         function init() {
             displayDate();
-            Object.keys(categoryConfig).forEach(cat => {
-                if (cat !== 'geral') renderCategoryTab(cat);
-            });
+            Object.keys(categoryConfig).forEach(cat => { if (cat !== 'geral') renderCategoryTab(cat); });
             loadTasks();
+            loadHistory();
             renderAll();
             document.querySelector('.tab-button[data-tab="geral"]').click();
+            document.querySelector('.history-sub-tab-button[data-subtab="lista"]').click();
         }
 
         init();

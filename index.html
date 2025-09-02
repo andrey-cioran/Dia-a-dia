@@ -21,13 +21,11 @@
         .tab-button:hover { background-color: #f3f4f6; }
         .tab-button.active { color: white; }
         
-        /* Estilos para as sub-abas de histórico */
         .history-sub-tab-content { display: none; }
         .history-sub-tab-content.active { display: block; }
         .history-sub-tab-button { background-color: #f9fafb; color: #4b5563; }
         .history-sub-tab-button.active { background-color: #4f46e5; color: white; }
 
-        /* Estilos para a Linha do Tempo */
         .timeline { border-left: 3px solid #e5e7eb; }
         .timeline-item { position: relative; }
         .timeline-item:before {
@@ -46,16 +44,13 @@
 </head>
 <body class="bg-gray-100 text-gray-800">
 
-    <!-- Container Principal -->
     <div class="container mx-auto p-4 sm:p-6 lg:p-8 max-w-4xl">
 
-        <!-- Cabeçalho com Data -->
         <header class="text-center mb-6">
             <h1 class="text-4xl md:text-5xl font-bold text-gray-900">Dia a Dia</h1>
             <p id="current-date" class="text-gray-600 mt-2 text-lg"></p>
         </header>
 
-        <!-- Navegação por Abas -->
         <div id="tabs" class="mb-6 flex flex-wrap justify-center gap-2">
             <button data-tab="geral" class="tab-button py-2 px-4 rounded-lg font-semibold transition-colors duration-200">Visão Geral</button>
             <button data-tab="trabalho" class="tab-button py-2 px-4 rounded-lg font-semibold transition-colors duration-200">Trabalho</button>
@@ -64,11 +59,10 @@
             <button data-tab="alimentacao" class="tab-button py-2 px-4 rounded-lg font-semibold transition-colors duration-200">Alimentação</button>
             <button data-tab="saude" class="tab-button py-2 px-4 rounded-lg font-semibold transition-colors duration-200">Saúde</button>
             <button data-tab="historico" class="tab-button py-2 px-4 rounded-lg font-semibold transition-colors duration-200">Histórico</button>
+            <button data-tab="configuracoes" class="tab-button py-2 px-4 rounded-lg font-semibold transition-colors duration-200">Configurações</button>
         </div>
 
-        <!-- Conteúdo das Abas -->
         <main id="tab-contents">
-             <!-- Aba Visão Geral (com Relatório) -->
             <div id="geral" class="tab-content bg-white p-6 rounded-2xl shadow-md border border-gray-200">
                 <h2 class="text-2xl font-semibold text-gray-700 mb-4">✨ Timeline do Dia</h2>
                 <ul id="geral-list" class="space-y-3 mb-4"></ul>
@@ -82,27 +76,56 @@
                     </div>
                 </div>
             </div>
-            <!-- Abas de Categoria -->
             <div id="trabalho" class="tab-content bg-white p-6 rounded-2xl shadow-md border border-gray-200"></div>
             <div id="estudo" class="tab-content bg-white p-6 rounded-2xl shadow-md border border-gray-200"></div>
             <div id="atividade-fisica" class="tab-content bg-white p-6 rounded-2xl shadow-md border border-gray-200"></div>
             <div id="alimentacao" class="tab-content bg-white p-6 rounded-2xl shadow-md border border-gray-200"></div>
             <div id="saude" class="tab-content bg-white p-6 rounded-2xl shadow-md border border-gray-200"></div>
             
-            <!-- Conteúdo da aba de Histórico -->
             <div id="historico" class="tab-content bg-white p-6 rounded-2xl shadow-md border border-gray-200">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-2xl font-semibold text-gray-700">📜 Histórico de Tarefas</h2>
-                    <!-- Navegação das sub-abas -->
                     <div id="history-sub-tabs" class="flex gap-2 p-1 bg-gray-100 rounded-lg">
                         <button data-subtab="lista" class="history-sub-tab-button py-1 px-3 rounded-md text-sm font-semibold transition-colors">Lista</button>
                         <button data-subtab="timeline" class="history-sub-tab-button py-1 px-3 rounded-md text-sm font-semibold transition-colors">Linha do Tempo</button>
                     </div>
                 </div>
-                <!-- Container para o conteúdo das sub-abas -->
                 <div id="history-sub-tab-contents">
                     <div id="history-lista" class="history-sub-tab-content space-y-6"></div>
                     <div id="history-timeline" class="history-sub-tab-content space-y-6"></div>
+                </div>
+            </div>
+
+            <div id="configuracoes" class="tab-content bg-white p-6 rounded-2xl shadow-md border border-gray-200">
+                <h2 class="text-2xl font-semibold text-gray-700 mb-6">⚙️ Configurações</h2>
+                <div class="border-t pt-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Gerenciar Tarefas Fixas</h3>
+                    <p class="text-gray-600 mb-4">Tarefas adicionadas aqui aparecerão automaticamente todos os dias.</p>
+                    
+                    <form id="add-fixed-task-form" class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end bg-gray-50 p-4 rounded-lg mb-6">
+                        <div class="sm:col-span-2">
+                            <label for="fixed-task-text" class="block text-sm font-medium text-gray-700">Descrição da Tarefa</label>
+                            <input type="text" id="fixed-task-text" placeholder="Ex: Tomar vitamina" class="mt-1 block w-full p-2 border rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none" required>
+                        </div>
+                        <div>
+                            <label for="fixed-task-time" class="block text-sm font-medium text-gray-700">Horário</label>
+                            <input type="time" id="fixed-task-time" class="mt-1 block w-full p-2 border rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        </div>
+                         <div>
+                            <label for="fixed-task-category" class="block text-sm font-medium text-gray-700">Categoria</label>
+                            <select id="fixed-task-category" class="mt-1 block w-full p-2 border rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white">
+                                <!-- Opções preenchidas via JS -->
+                            </select>
+                        </div>
+                        <div class="sm:col-span-4">
+                             <button type="submit" class="w-full bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition-colors">Adicionar Tarefa Fixa</button>
+                        </div>
+                    </form>
+
+                    <h4 class="text-lg font-semibold text-gray-700 mb-2">Lista de Tarefas Fixas</h4>
+                    <ul id="fixed-tasks-list" class="space-y-2">
+                        <!-- Lista de tarefas fixas renderizada aqui -->
+                    </ul>
                 </div>
             </div>
         </main>
@@ -115,6 +138,7 @@
         const dateDisplay = document.getElementById('current-date');
         let tasks = {};
         let history = {};
+        let fixedTasks = [];
 
         const categoryConfig = {
             geral:            { prefix: 'text-gray-500',   activeTab: 'bg-gray-600',   checkbox: 'text-gray-600',   ring: 'ring-gray-500',   icon: '✨', title: 'Visão Geral', timeline: 'border-gray-500' },
@@ -123,13 +147,27 @@
             'atividade-fisica': { prefix: 'text-red-500',    activeTab: 'bg-red-600',    checkbox: 'text-red-600',    ring: 'ring-red-500',    icon: '💪', title: 'Atividade Física', timeline: 'border-red-500' },
             alimentacao:      { prefix: 'text-green-500',  activeTab: 'bg-green-600',  checkbox: 'text-green-600',  ring: 'ring-green-500',  icon: '🍎', title: 'Alimentação', timeline: 'border-green-500' },
             saude:            { prefix: 'text-purple-500', activeTab: 'bg-purple-600', checkbox: 'text-purple-600', ring: 'ring-purple-500', icon: '❤️', title: 'Saúde', timeline: 'border-purple-500' },
-            historico:        { prefix: 'text-indigo-500', activeTab: 'bg-indigo-600', checkbox: 'text-indigo-600', ring: 'ring-indigo-500', icon: '📜', title: 'Histórico', timeline: 'border-indigo-500' }
+            historico:        { prefix: 'text-indigo-500', activeTab: 'bg-indigo-600', checkbox: 'text-indigo-600', ring: 'ring-indigo-500', icon: '📜', title: 'Histórico', timeline: 'border-indigo-500' },
+            configuracoes:    { prefix: 'text-gray-500',   activeTab: 'bg-gray-800',   checkbox: 'text-gray-800',   ring: 'ring-gray-800',   icon: '⚙️', title: 'Configurações' }
         };
+
+        // --- LÓGICA DE DADOS ---
+
+        function loadFixedTasks() {
+            const saved = localStorage.getItem('fixedTasks');
+            fixedTasks = saved ? JSON.parse(saved) : [];
+        }
+
+        function saveFixedTasks() {
+            localStorage.setItem('fixedTasks', JSON.stringify(fixedTasks));
+        }
 
         function generateInitialTasks() {
             const today = new Date();
             const dayOfWeek = today.getDay();
             const dayOfMonth = today.getDate();
+            
+            // CORREÇÃO: Começa com as tarefas originais hardcoded
             const newTasks = {
                 trabalho: [
                     { id: Date.now() + 1, text: 'Subir Volumetria', time: '07:50', completed: false },
@@ -149,7 +187,15 @@
                 ],
                 saude: [ { id: Date.now() + 11, text: 'Tomar creatina', time: '07:10', completed: false } ]
             };
+
+            // CORREÇÃO: Adiciona as tarefas fixas personalizadas à lista existente
+            fixedTasks.forEach(task => {
+                if (newTasks[task.category]) {
+                    newTasks[task.category].push({ ...task, id: Date.now() + Math.random(), completed: false });
+                }
+            });
             
+            // Adiciona tarefas dinâmicas do dia
             const workoutPlan = ['Domingo: Ombro, panturrilha e ABS', 'Segunda: Perna', 'Terça: Costas, bíceps e trapézio', 'Quarta: Peito, tríceps e ombro', 'Quinta: Costas, bíceps', 'Sexta: Peito e tríceps', 'Sábado: Baba'];
             let workoutTime = '18:30';
             if (dayOfWeek === 6) workoutTime = '06:00';
@@ -183,6 +229,8 @@
         }
         function saveHistory() { localStorage.setItem('tasksHistory', JSON.stringify(history)); }
 
+        // --- FUNÇÕES DE RENDERIZAÇÃO ---
+
         function displayDate() {
             const now = new Date();
             const days = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
@@ -212,7 +260,7 @@
         function renderCategoryTab(category) {
             const config = categoryConfig[category];
             const container = document.getElementById(category);
-            if(category === 'historico') return;
+            if(category === 'historico' || category === 'configuracoes') return;
             container.innerHTML = `
                 <h2 class="text-2xl font-semibold text-gray-700 mb-4">${config.icon} ${config.title}</h2>
                 <ul id="${category}-list" class="space-y-3 mb-4"></ul>
@@ -297,7 +345,6 @@
                 if (tasksForDay.length === 0) return;
                 tasksForDay.sort((a, b) => (a.completedAt || '99:99').localeCompare(b.completedAt || '99:99'));
 
-                // Renderiza a visualização em Lista
                 const listDayContainer = document.createElement('div');
                 listDayContainer.innerHTML = `<h3 class="text-xl font-bold text-gray-800 pb-2 mb-2 border-b">${date}</h3>`;
                 const listElement = document.createElement('ul');
@@ -309,7 +356,6 @@
                 listDayContainer.appendChild(listElement);
                 historyListEl.appendChild(listDayContainer);
 
-                // Renderiza a visualização em Linha do Tempo
                 const timelineDayContainer = document.createElement('div');
                 timelineDayContainer.innerHTML = `<h3 class="text-xl font-bold text-gray-800 pb-2 mb-4">${date}</h3>`;
                 const timelineElement = document.createElement('div');
@@ -332,6 +378,32 @@
             });
         }
 
+        function renderFixedTasksList() {
+            const listEl = document.getElementById('fixed-tasks-list');
+            listEl.innerHTML = '';
+            if (fixedTasks.length === 0) {
+                listEl.innerHTML = '<li class="text-center text-gray-500">Nenhuma tarefa fixa adicionada.</li>';
+                return;
+            }
+            fixedTasks.forEach((task, index) => {
+                const config = categoryConfig[task.category];
+                const li = document.createElement('li');
+                li.className = 'flex items-center justify-between p-2 rounded-lg bg-gray-50';
+                li.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="font-semibold text-gray-600 w-14">${task.time || 'N/A'}</span>
+                        <span class="font-bold ${config.prefix}">${config.icon}</span>
+                        <span class="text-gray-800">${task.text}</span>
+                    </div>
+                    <button class="remove-fixed-task-btn text-gray-400 hover:text-red-500 transition-colors" data-index="${index}">
+                        <i data-feather="trash-2" class="w-5 h-5"></i>
+                    </button>
+                `;
+                listEl.appendChild(li);
+            });
+            feather.replace();
+        }
+
         function renderAll() {
             const geralList = document.getElementById('geral-list');
             geralList.innerHTML = '';
@@ -348,6 +420,7 @@
             });
             renderReport();
             renderHistory();
+            renderFixedTasksList();
             feather.replace();
         }
 
@@ -408,7 +481,6 @@
                     if (task.completed) {
                         const alreadyInHistory = history[todayKey].some(ht => ht.id === taskId);
                         if (!alreadyInHistory) {
-                            // CORREÇÃO: Formata a hora manualmente para HH:MM
                             const now = new Date();
                             const hours = String(now.getHours()).padStart(2, '0');
                             const minutes = String(now.getMinutes()).padStart(2, '0');
@@ -435,9 +507,46 @@
             }
         });
 
+        document.getElementById('add-fixed-task-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const text = document.getElementById('fixed-task-text').value.trim();
+            const time = document.getElementById('fixed-task-time').value;
+            const category = document.getElementById('fixed-task-category').value;
+            if (text && category) {
+                fixedTasks.push({ text, time, category });
+                saveFixedTasks();
+                renderFixedTasksList();
+                e.target.reset();
+            }
+        });
+
+        document.getElementById('fixed-tasks-list').addEventListener('click', (e) => {
+            const removeBtn = e.target.closest('.remove-fixed-task-btn');
+            if (removeBtn) {
+                const index = Number(removeBtn.dataset.index);
+                fixedTasks.splice(index, 1);
+                saveFixedTasks();
+                renderFixedTasksList();
+            }
+        });
+
+
+        // --- INICIALIZAÇÃO ---
         function init() {
             displayDate();
-            Object.keys(categoryConfig).forEach(cat => { if (cat !== 'geral') renderCategoryTab(cat); });
+            
+            const fixedTaskCategorySelect = document.getElementById('fixed-task-category');
+            Object.keys(categoryConfig).forEach(cat => {
+                if (cat !== 'geral' && cat !== 'historico' && cat !== 'configuracoes') {
+                    renderCategoryTab(cat);
+                    const option = document.createElement('option');
+                    option.value = cat;
+                    option.textContent = categoryConfig[cat].title;
+                    fixedTaskCategorySelect.appendChild(option);
+                }
+            });
+
+            loadFixedTasks();
             loadTasks();
             loadHistory();
             renderAll();

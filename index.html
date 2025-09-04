@@ -137,7 +137,6 @@
         const tabContentsContainer = document.getElementById('tab-contents');
         const dateDisplay = document.getElementById('current-date');
         let tasks = {};
-        let history = {};
         let fixedTasks = [];
 
         const categoryConfig = {
@@ -152,7 +151,6 @@
         };
 
         // --- LÓGICA DE DADOS ---
-
         function loadFixedTasks() {
             const saved = localStorage.getItem('fixedTasks');
             fixedTasks = saved ? JSON.parse(saved) : [];
@@ -167,7 +165,6 @@
             const dayOfWeek = today.getDay();
             const dayOfMonth = today.getDate();
             
-            // CORREÇÃO: Começa com as tarefas originais hardcoded
             const newTasks = {
                 trabalho: [
                     { id: Date.now() + 1, text: 'Subir Volumetria', time: '07:50', completed: false },
@@ -188,14 +185,12 @@
                 saude: [ { id: Date.now() + 11, text: 'Tomar creatina', time: '07:10', completed: false } ]
             };
 
-            // CORREÇÃO: Adiciona as tarefas fixas personalizadas à lista existente
             fixedTasks.forEach(task => {
                 if (newTasks[task.category]) {
                     newTasks[task.category].push({ ...task, id: Date.now() + Math.random(), completed: false });
                 }
             });
             
-            // Adiciona tarefas dinâmicas do dia
             const workoutPlan = ['Domingo: Ombro, panturrilha e ABS', 'Segunda: Perna', 'Terça: Costas, bíceps e trapézio', 'Quarta: Peito, tríceps e ombro', 'Quinta: Costas, bíceps', 'Sexta: Peito e tríceps', 'Sábado: Baba'];
             let workoutTime = '18:30';
             if (dayOfWeek === 6) workoutTime = '06:00';
@@ -223,14 +218,8 @@
             const todayStorageKey = `dailyTasks-${getTodayKey()}`;
             localStorage.setItem(todayStorageKey, JSON.stringify(tasks));
         }
-        function loadHistory() {
-            const savedHistory = localStorage.getItem('tasksHistory');
-            history = savedHistory ? JSON.parse(savedHistory) : {};
-        }
-        function saveHistory() { localStorage.setItem('tasksHistory', JSON.stringify(history)); }
 
         // --- FUNÇÕES DE RENDERIZAÇÃO ---
-
         function displayDate() {
             const now = new Date();
             const days = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
@@ -327,52 +316,70 @@
             historyListEl.innerHTML = '';
             historyTimelineEl.innerHTML = '';
 
-            const sortedDates = Object.keys(history).sort((a, b) => {
+            const finalizedHistory = JSON.parse(localStorage.getItem('finalizedHistory')) || {};
+            const sortedDates = Object.keys(finalizedHistory).sort((a, b) => {
                 const [dayA, monthA, yearA] = a.split('/');
                 const [dayB, monthB, yearB] = b.split('/');
                 return new Date(`${yearB}-${monthB}-${dayB}`) - new Date(`${yearA}-${monthA}-${dayA}`);
             });
 
             if (sortedDates.length === 0) {
-                const emptyMsg = '<p class="text-center text-gray-500">Nenhuma tarefa foi concluída ainda.</p>';
+                const emptyMsg = '<p class="text-center text-gray-500">O histórico de dias anteriores aparecerá aqui quando um novo dia começar.</p>';
                 historyListEl.innerHTML = emptyMsg;
                 historyTimelineEl.innerHTML = emptyMsg;
                 return;
             }
 
             sortedDates.forEach(date => {
-                const tasksForDay = history[date];
-                if (tasksForDay.length === 0) return;
-                tasksForDay.sort((a, b) => (a.completedAt || '99:99').localeCompare(b.completedAt || '99:99'));
+                const tasksForDayObj = finalizedHistory[date];
+                const allTasksForDay = Object.keys(tasksForDayObj).flatMap(category => 
+                    tasksForDayObj[category].map(task => ({ ...task, category }))
+                );
+                
+                if (allTasksForDay.length === 0) return;
+                allTasksForDay.sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'));
 
+                // Renderiza a visualização em Lista (com concluídas e não concluídas)
                 const listDayContainer = document.createElement('div');
                 listDayContainer.innerHTML = `<h3 class="text-xl font-bold text-gray-800 pb-2 mb-2 border-b">${date}</h3>`;
                 const listElement = document.createElement('ul');
                 listElement.className = 'space-y-2';
-                tasksForDay.forEach(task => {
+                allTasksForDay.forEach(task => {
                     const config = categoryConfig[task.category];
-                    listElement.innerHTML += `<li class="flex items-center text-gray-600"><span class="font-semibold w-20">[${task.completedAt}]</span><span class="font-bold ${config.prefix} mr-2">${config.icon}</span><span>${task.text}</span></li>`;
+                    if (task.completed) {
+                        listElement.innerHTML += `<li class="flex items-center text-gray-600"><span class="font-semibold w-20">[${task.completedAt || task.time}]</span><span class="font-bold ${config.prefix} mr-2">${config.icon}</span><span>${task.text}</span></li>`;
+                    } else {
+                        listElement.innerHTML += `<li class="flex items-center text-red-500 opacity-75"><span class="font-semibold w-20">[${task.time || ' -- '}]</span><span class="font-bold mr-2 text-red-400">⨯</span><span class="italic">${task.text} (Não realizada)</span></li>`;
+                    }
                 });
                 listDayContainer.appendChild(listElement);
                 historyListEl.appendChild(listDayContainer);
+
+                // Renderiza a visualização em Linha do Tempo (APENAS concluídas)
+                const completedTasksForDay = allTasksForDay.filter(task => task.completed);
+                completedTasksForDay.sort((a, b) => (a.completedAt || '99:99').localeCompare(b.completedAt || '99:99'));
 
                 const timelineDayContainer = document.createElement('div');
                 timelineDayContainer.innerHTML = `<h3 class="text-xl font-bold text-gray-800 pb-2 mb-4">${date}</h3>`;
                 const timelineElement = document.createElement('div');
                 timelineElement.className = 'timeline ml-4 pl-8 space-y-4';
-                tasksForDay.forEach(task => {
-                    const config = categoryConfig[task.category];
-                    timelineElement.innerHTML += `
-                        <div class="timeline-item ${config.timeline}">
-                            <div class="flex items-center gap-4">
-                                <span class="font-bold text-gray-700">${task.completedAt}</span>
-                                <div class="flex items-center gap-2 p-2 bg-gray-50 rounded-lg flex-grow">
-                                    <span class="font-bold ${config.prefix}">${config.icon}</span>
-                                    <span class="text-gray-800">${task.text}</span>
+                if (completedTasksForDay.length > 0) {
+                    completedTasksForDay.forEach(task => {
+                        const config = categoryConfig[task.category];
+                        timelineElement.innerHTML += `
+                            <div class="timeline-item ${config.timeline}">
+                                <div class="flex items-center gap-4">
+                                    <span class="font-bold text-gray-700">${task.completedAt}</span>
+                                    <div class="flex items-center gap-2 p-2 bg-gray-50 rounded-lg flex-grow">
+                                        <span class="font-bold ${config.prefix}">${config.icon}</span>
+                                        <span class="text-gray-800">${task.text}</span>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>`;
-                });
+                            </div>`;
+                    });
+                } else {
+                    timelineElement.innerHTML = `<p class="text-center text-gray-500">Nenhuma tarefa concluída neste dia.</p>`;
+                }
                 timelineDayContainer.appendChild(timelineElement);
                 historyTimelineEl.appendChild(timelineDayContainer);
             });
@@ -476,21 +483,15 @@
                 const task = tasks[category].find(t => t.id === taskId);
                 if (task) {
                     task.completed = checkbox.checked;
-                    const todayKey = getTodayKey();
-                    if (!history[todayKey]) history[todayKey] = [];
                     if (task.completed) {
-                        const alreadyInHistory = history[todayKey].some(ht => ht.id === taskId);
-                        if (!alreadyInHistory) {
-                            const now = new Date();
-                            const hours = String(now.getHours()).padStart(2, '0');
-                            const minutes = String(now.getMinutes()).padStart(2, '0');
-                            history[todayKey].push({ ...task, category: category, completedAt: `${hours}:${minutes}` });
-                        }
+                        const now = new Date();
+                        const hours = String(now.getHours()).padStart(2, '0');
+                        const minutes = String(now.getMinutes()).padStart(2, '0');
+                        task.completedAt = `${hours}:${minutes}`;
                     } else {
-                        history[todayKey] = history[todayKey].filter(ht => ht.id !== taskId);
+                        delete task.completedAt;
                     }
                     saveTasks();
-                    saveHistory();
                     renderAll();
                 }
             }
@@ -499,10 +500,7 @@
                 const taskId = Number(removeBtn.dataset.id);
                 const category = removeBtn.dataset.category;
                 tasks[category] = tasks[category].filter(task => task.id !== taskId);
-                const todayKey = getTodayKey();
-                if (history[todayKey]) history[todayKey] = history[todayKey].filter(ht => ht.id !== taskId);
                 saveTasks();
-                saveHistory();
                 renderAll();
             }
         });
@@ -515,7 +513,14 @@
             if (text && category) {
                 fixedTasks.push({ text, time, category });
                 saveFixedTasks();
-                renderFixedTasksList();
+                
+                const newTaskForToday = { id: Date.now(), text, time, completed: false };
+                if (tasks[category]) {
+                    tasks[category].push(newTaskForToday);
+                    saveTasks();
+                }
+
+                renderAll();
                 e.target.reset();
             }
         });
@@ -533,6 +538,20 @@
 
         // --- INICIALIZAÇÃO ---
         function init() {
+            const todayKey = getTodayKey();
+            const lastVisitDate = localStorage.getItem('lastVisitDate');
+
+            if (lastVisitDate && lastVisitDate !== todayKey) {
+                const previousDayTasksJSON = localStorage.getItem(`dailyTasks-${lastVisitDate}`);
+                if (previousDayTasksJSON) {
+                    const previousDayTasks = JSON.parse(previousDayTasksJSON);
+                    let finalizedHistory = JSON.parse(localStorage.getItem('finalizedHistory')) || {};
+                    finalizedHistory[lastVisitDate] = previousDayTasks;
+                    localStorage.setItem('finalizedHistory', JSON.stringify(finalizedHistory));
+                }
+            }
+            localStorage.setItem('lastVisitDate', todayKey);
+
             displayDate();
             
             const fixedTaskCategorySelect = document.getElementById('fixed-task-category');
@@ -548,7 +567,6 @@
 
             loadFixedTasks();
             loadTasks();
-            loadHistory();
             renderAll();
             document.querySelector('.tab-button[data-tab="geral"]').click();
             document.querySelector('.history-sub-tab-button[data-subtab="lista"]').click();
